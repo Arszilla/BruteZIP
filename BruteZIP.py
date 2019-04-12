@@ -6,38 +6,43 @@ import tempfile
 from zipfile import ZipFile
 from zipfile import ZipInfo
 
-parser = argparse.ArgumentParser(description="Unzips a password protected .zip by performing a brute-force attack using either a word list, password list or a dictionary.", usage="BruteZIP.py -p poolsize -z zip.zip -f file.txt")
+parser = argparse.ArgumentParser(description="Unzips a password protected .zip by performing a brute-force attack "
+                                             "using either a word list, password list or a dictionary.",
+                                 usage="BruteZIP.py -p poolsize -z zip.zip -f file.txt")
 # Creates -p arg
-parser.add_argument("-p", "--poolsize", required=False, type=int, default=8, help="Determines how many instances of Python to be created. More is better but will use more CPU and memory.")
+parser.add_argument("-p", "--poolsize", metavar="", required=False, type=int, default=8, help="Determines how many "
+                                                                                              "instances of Python to "
+                                                                                              "be created. More is "
+                                                                                              "better but will use "
+                                                                                              "more CPU and memory.")
 # Creates -z arg
 parser.add_argument("-z", "--zip", metavar="", required=True, help="Location and the name of the .zip file.")
 # Creates -f arg
-parser.add_argument("-f", "--file", metavar="", required=True, help="Location and the name of the word list/password list/dictionary.")
+parser.add_argument("-f", "--file", metavar="", required=True, help="Location and the name of the word list/password "
+                                                                    "list/dictionary.")
 args = parser.parse_args()
 
 
 class Zipped(ZipFile):
     def _extract_member(self, member, targetpath, pwd):
-        """Extract the ZipInfo object 'member' to a physical
-           file on the path targetpath.
-        """
+        # Extract the ZipInfo object 'member' to a physical  file on the path targetpath.
+
         if not isinstance(member, ZipInfo):
             member = self.getinfo(member)
 
-        # build the destination pathname, replacing
-        # forward slashes to platform specific separators.
+        # Build the destination pathname, replacing forward slashes to platform specific separators.
         arcname = member.filename.replace('/', os.path.sep)
 
         if os.path.altsep:
             arcname = arcname.replace(os.path.altsep, os.path.sep)
-        # interpret absolute pathname as relative, remove drive letter or
-        # UNC path, redundant separators, "." and ".." components.
+        # Interpret absolute pathname as relative, remove drive letter or UNC path, redundant separators,
+        # "." and ".." components.
         arcname = os.path.splitdrive(arcname)[1]
         invalid_path_parts = ('', os.path.curdir, os.path.pardir)
         arcname = os.path.sep.join(x for x in arcname.split(os.path.sep)
                                    if x not in invalid_path_parts)
         if os.path.sep == '\\':
-            # filter illegal characters on Windows
+            # Filter illegal characters on Windows
             arcname = self._sanitize_windows_name(arcname, os.path.sep)
 
         targetpath = os.path.join(targetpath, arcname)
@@ -83,7 +88,8 @@ def extract_zip(zip_filename, password):
         zip_file.extractall('Extracted', pwd=password)
         print(f"[+] Password for the .zip: {password.decode('utf-8')}")
     except:
-        # If a password fails, it moves to the next password without notifying the user. If all passwords fail, it will print nothing in the command prompt.
+        # If a password fails, it moves to the next password without notifying the user.
+        # If all passwords fail, it will print nothing in the command prompt.
         pass
 
 
@@ -94,7 +100,7 @@ def main(poolsize, zip, file):
         exit(0)
     # Opens the word list/password list/dictionary in "read binary" mode.
     txt_file = open(file, "rb")
-    # Allows 8 instances of Python to be ran simultaneously.
+    # Allows 8 or more instances of Python to be ran simultaneously.
     with multiprocessing.Pool(poolsize) as pool:
         # "starmap" expands the tuples as 2 separate arguments to fit "extract_zip"
         pool.starmap(extract_zip, [(zip, line.strip()) for line in txt_file])

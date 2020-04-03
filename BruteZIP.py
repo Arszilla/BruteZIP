@@ -3,8 +3,7 @@ import multiprocessing
 import os
 import shutil
 import tempfile
-from zipfile import ZipFile
-from zipfile import ZipInfo
+from zipfile import ZipInfo, ZipFile
 
 parser = argparse.ArgumentParser(description="Unzips a password protected .zip by performing a brute-force attack "
                                              "using either a word list, password list or a dictionary.",
